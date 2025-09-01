@@ -202,4 +202,7 @@ class GraphSetup:
         workflow.add_edge("Risk Judge", END)
 
         # Compile and return
-        return workflow.compile()
+        workflow_compile = workflow.compile()
+        from p24_code.agentic_code.langgraph1.Lesson_2_Student_langgraph import LangchainCompiledGraph_get_png
+        LangchainCompiledGraph_get_png(workflow_compile)
+        return workflow_compile
