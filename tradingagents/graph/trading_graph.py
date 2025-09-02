@@ -12,6 +12,7 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 
 from langgraph.prebuilt import ToolNode
 
+from p24_code.agentic_code.langchain1.init import ChatOpenAIStrippedInvoking
 from tradingagents.agents import *
 from tradingagents.default_config import DEFAULT_CONFIG
 from tradingagents.agents.utils.memory import FinancialSituationMemory
@@ -59,8 +60,8 @@ class TradingAgentsGraph:
 
         # Initialize LLMs
         if self.config["llm_provider"].lower() == "openai" or self.config["llm_provider"] == "ollama" or self.config["llm_provider"] == "openrouter":
-            self.deep_thinking_llm = ChatOpenAI(model=self.config["deep_think_llm"], base_url=self.config["backend_url"])
-            self.quick_thinking_llm = ChatOpenAI(model=self.config["quick_think_llm"], base_url=self.config["backend_url"])
+            self.deep_thinking_llm = ChatOpenAIStrippedInvoking(model=self.config["deep_think_llm"], base_url=self.config["backend_url"])
+            self.quick_thinking_llm = ChatOpenAIStrippedInvoking(model=self.config["quick_think_llm"], base_url=self.config["backend_url"])
         elif self.config["llm_provider"].lower() == "anthropic":
             self.deep_thinking_llm = ChatAnthropic(model=self.config["deep_think_llm"], base_url=self.config["backend_url"])
             self.quick_thinking_llm = ChatAnthropic(model=self.config["quick_think_llm"], base_url=self.config["backend_url"])
@@ -69,7 +70,7 @@ class TradingAgentsGraph:
             self.quick_thinking_llm = ChatGoogleGenerativeAI(model=self.config["quick_think_llm"])
         else:
             raise ValueError(f"Unsupported LLM provider: {self.config['llm_provider']}")
-        
+
         self.toolkit = Toolkit(config=self.config)
 
         # Initialize memories
@@ -154,7 +155,7 @@ class TradingAgentsGraph:
             ),
         }
 
-    def propagate(self, company_name, trade_date):
+    def propagate(self, company_name, trade_date, do_node=None):
         """Run the trading agents graph for a company on a specific date."""
 
         self.ticker = company_name
@@ -165,7 +166,26 @@ class TradingAgentsGraph:
         )
         args = self.propagator.get_graph_args()
 
-        if self.debug:
+        if do_node:
+            executor = self.graph.get_executor()
+            state = {"input": "Run analysis"}
+
+            while not executor.is_done(state):
+                next_node = executor.get_next_node(state)
+                print("About to run:", next_node)
+
+                # step returns (new_state, stream_messages)
+                new_state, events = executor.step(state, next_node)
+
+                # update working state
+                state = new_state
+                print("State now:", state)
+
+                # print each stream message
+                for ev in events:
+                    # ev is usually a dict like {"NodeName": output}
+                    print("Stream event:", ev)
+        elif self.debug:
             # Debug mode with tracing
             trace = []
             for chunk in self.graph.stream(init_agent_state, **args):
@@ -191,6 +211,8 @@ class TradingAgentsGraph:
 
     def _log_state(self, trade_date, final_state):
         """Log the final state to a JSON file."""
+        from p24_code.agentic_code.function_logger import get_log_calls_df
+        get_log_calls_df()
         self.log_states_dict[str(trade_date)] = {
             "company_of_interest": final_state["company_of_interest"],
             "trade_date": final_state["trade_date"],

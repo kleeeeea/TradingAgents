@@ -3,6 +3,8 @@ import json
 
 
 def create_risk_manager(llm, memory):
+    from p24_code.agentic_code.function_logger import log_calls
+    @log_calls()  # default: stores return repr, truncates long values to 500 chars
     def risk_manager_node(state) -> dict:
 
         company_name = state["company_of_interest"]

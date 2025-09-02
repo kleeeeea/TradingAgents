@@ -4,6 +4,8 @@ import json
 
 
 def create_bear_researcher(llm, memory):
+    from p24_code.agentic_code.function_logger import log_calls
+    @log_calls()  # default: stores return repr, truncates long values to 500 chars
     def bear_node(state) -> dict:
         investment_debate_state = state["investment_debate_state"]
         history = investment_debate_state.get("history", "")

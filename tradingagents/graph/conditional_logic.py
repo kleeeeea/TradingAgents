@@ -1,5 +1,5 @@
 # TradingAgents/graph/conditional_logic.py
-
+from p24_code.agentic_code.function_logger import log_calls
 from tradingagents.agents.utils.agent_states import AgentState
 
 
@@ -11,6 +11,7 @@ class ConditionalLogic:
         self.max_debate_rounds = max_debate_rounds
         self.max_risk_discuss_rounds = max_risk_discuss_rounds
 
+    @log_calls()  # default: stores return repr, truncates long values to 500 chars
     def should_continue_market(self, state: AgentState):
         """Determine if market analysis should continue."""
         messages = state["messages"]
@@ -19,6 +20,7 @@ class ConditionalLogic:
             return "tools_market"
         return "Msg Clear Market"
 
+    @log_calls()  # default: stores return repr, truncates long values to 500 chars
     def should_continue_social(self, state: AgentState):
         """Determine if social media analysis should continue."""
         messages = state["messages"]
@@ -27,6 +29,7 @@ class ConditionalLogic:
             return "tools_social"
         return "Msg Clear Social"
 
+    @log_calls()  # default: stores return repr, truncates long values to 500 chars
     def should_continue_news(self, state: AgentState):
         """Determine if news analysis should continue."""
         messages = state["messages"]
@@ -35,6 +38,7 @@ class ConditionalLogic:
             return "tools_news"
         return "Msg Clear News"
 
+    @log_calls()  # default: stores return repr, truncates long values to 500 chars
     def should_continue_fundamentals(self, state: AgentState):
         """Determine if fundamentals analysis should continue."""
         messages = state["messages"]
@@ -43,9 +47,10 @@ class ConditionalLogic:
             return "tools_fundamentals"
         return "Msg Clear Fundamentals"
 
+    @log_calls()  # default: stores return repr, truncates long values to 500 chars
     def should_continue_debate(self, state: AgentState) -> str:
         """Determine if debate should continue."""
-
+        print()
         if (
             state["investment_debate_state"]["count"] >= 2 * self.max_debate_rounds
         ):  # 3 rounds of back-and-forth between 2 agents
@@ -54,6 +59,7 @@ class ConditionalLogic:
             return "Bear Researcher"
         return "Bull Researcher"
 
+    @log_calls()  # default: stores return repr, truncates long values to 500 chars
     def should_continue_risk_analysis(self, state: AgentState) -> str:
         """Determine if risk analysis should continue."""
         if (

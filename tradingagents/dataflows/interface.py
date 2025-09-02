@@ -1,4 +1,6 @@
 from typing import Annotated, Dict
+
+from p24_code.agentic_code.langchain1.init import cache_by_input
 from .reddit_utils import fetch_top_from_category
 from .yfin_utils import *
 from .stockstats_utils import *
@@ -15,6 +17,7 @@ import yfinance as yf
 from openai import OpenAI
 from .config import get_config, set_config, DATA_DIR
 
+@cache_by_input()
 
 def get_finnhub_news(
     ticker: Annotated[
@@ -57,6 +60,7 @@ def get_finnhub_news(
 
     return f"## {ticker} News, from {before} to {curr_date}:\n" + str(combined_result)
 
+@cache_by_input()
 
 def get_finnhub_company_insider_sentiment(
     ticker: Annotated[str, "ticker symbol for the company"],
@@ -98,6 +102,7 @@ def get_finnhub_company_insider_sentiment(
         + "The change field refers to the net buying/selling from all insiders' transactions. The mspr field refers to monthly share purchase ratio."
     )
 
+@cache_by_input()
 
 def get_finnhub_company_insider_transactions(
     ticker: Annotated[str, "ticker symbol"],
@@ -140,6 +145,7 @@ def get_finnhub_company_insider_transactions(
         + "The change field reflects the variation in share count—here a negative number indicates a reduction in holdings—while share specifies the total number of shares involved. The transactionPrice denotes the per-share price at which the trade was executed, and transactionDate marks when the transaction occurred. The name field identifies the insider making the trade, and transactionCode (e.g., S for sale) clarifies the nature of the transaction. FilingDate records when the transaction was officially reported, and the unique id links to the specific SEC filing, as indicated by the source. Additionally, the symbol ties the transaction to a particular company, isDerivative flags whether the trade involves derivative securities, and currency notes the currency context of the transaction."
     )
 
+@cache_by_input()
 
 def get_simfin_balance_sheet(
     ticker: Annotated[str, "ticker symbol"],
@@ -187,6 +193,7 @@ def get_simfin_balance_sheet(
         + "\n\nThis includes metadata like reporting dates and currency, share details, and a breakdown of assets, liabilities, and equity. Assets are grouped as current (liquid items like cash and receivables) and noncurrent (long-term investments and property). Liabilities are split between short-term obligations and long-term debts, while equity reflects shareholder funds such as paid-in capital and retained earnings. Together, these components ensure that total assets equal the sum of liabilities and equity."
     )
 
+@cache_by_input()
 
 def get_simfin_cashflow(
     ticker: Annotated[str, "ticker symbol"],
@@ -234,6 +241,7 @@ def get_simfin_cashflow(
         + "\n\nThis includes metadata like reporting dates and currency, share details, and a breakdown of cash movements. Operating activities show cash generated from core business operations, including net income adjustments for non-cash items and working capital changes. Investing activities cover asset acquisitions/disposals and investments. Financing activities include debt transactions, equity issuances/repurchases, and dividend payments. The net change in cash represents the overall increase or decrease in the company's cash position during the reporting period."
     )
 
+@cache_by_input()
 
 def get_simfin_income_statements(
     ticker: Annotated[str, "ticker symbol"],
@@ -281,6 +289,7 @@ def get_simfin_income_statements(
         + "\n\nThis includes metadata like reporting dates and currency, share details, and a comprehensive breakdown of the company's financial performance. Starting with Revenue, it shows Cost of Revenue and resulting Gross Profit. Operating Expenses are detailed, including SG&A, R&D, and Depreciation. The statement then shows Operating Income, followed by non-operating items and Interest Expense, leading to Pretax Income. After accounting for Income Tax and any Extraordinary items, it concludes with Net Income, representing the company's bottom-line profit or loss for the period."
     )
 
+@cache_by_input()
 
 def get_google_news(
     query: Annotated[str, "Query to search with"],
@@ -307,6 +316,7 @@ def get_google_news(
 
     return f"## {query} Google News, from {before} to {curr_date}:\n\n{news_str}"
 
+@cache_by_input()
 
 def get_reddit_global_news(
     start_date: Annotated[str, "Start date in yyyy-mm-dd format"],
@@ -359,6 +369,7 @@ def get_reddit_global_news(
 
     return f"## Global News Reddit, from {before} to {curr_date}:\n{news_str}"
 
+@cache_by_input()
 
 def get_reddit_company_news(
     ticker: Annotated[str, "ticker symbol of the company"],
@@ -418,6 +429,7 @@ def get_reddit_company_news(
 
     return f"##{ticker} News Reddit, from {before} to {curr_date}:\n\n{news_str}"
 
+@cache_by_input()
 
 def get_stock_stats_indicators_window(
     symbol: Annotated[str, "ticker symbol of the company"],
@@ -554,6 +566,7 @@ def get_stock_stats_indicators_window(
 
     return result_str
 
+@cache_by_input()
 
 def get_stockstats_indicator(
     symbol: Annotated[str, "ticker symbol of the company"],
@@ -583,6 +596,7 @@ def get_stockstats_indicator(
 
     return str(indicator_value)
 
+@cache_by_input()
 
 def get_YFin_data_window(
     symbol: Annotated[str, "ticker symbol of the company"],
@@ -623,6 +637,7 @@ def get_YFin_data_window(
         f"## Raw Market Data for {symbol} from {start_date} to {curr_date}:\n\n"
         + df_string
     )
+@cache_by_input()
 
 
 def get_YFin_data_online(
@@ -666,6 +681,7 @@ def get_YFin_data_online(
 
     return header + csv_string
 
+@cache_by_input()
 
 def get_YFin_data(
     symbol: Annotated[str, "ticker symbol of the company"],
@@ -701,6 +717,7 @@ def get_YFin_data(
 
     return filtered_data
 
+@cache_by_input()
 
 def get_stock_news_openai(ticker, curr_date):
     config = get_config()
@@ -737,40 +754,45 @@ def get_stock_news_openai(ticker, curr_date):
     return response.output[1].content[0].text
 
 
+@cache_by_input()
 def get_global_news_openai(curr_date):
     config = get_config()
     client = OpenAI(base_url=config["backend_url"])
+    try:
 
-    response = client.responses.create(
-        model=config["quick_think_llm"],
-        input=[
-            {
-                "role": "system",
-                "content": [
-                    {
-                        "type": "input_text",
-                        "text": f"Can you search global or macroeconomics news from 7 days before {curr_date} to {curr_date} that would be informative for trading purposes? Make sure you only get the data posted during that period.",
-                    }
-                ],
-            }
-        ],
-        text={"format": {"type": "text"}},
-        reasoning={},
-        tools=[
-            {
-                "type": "web_search_preview",
-                "user_location": {"type": "approximate"},
-                "search_context_size": "low",
-            }
-        ],
-        temperature=1,
-        max_output_tokens=4096,
-        top_p=1,
-        store=True,
-    )
+        response = client.responses.create(
+            model=config["quick_think_llm"],
+            input=[
+                {
+                    "role": "system",
+                    "content": [
+                        {
+                            "type": "input_text",
+                            "text": f"Can you search global or macroeconomics news from 7 days before {curr_date} to {curr_date} that would be informative for trading purposes? Make sure you only get the data posted during that period.",
+                        }
+                    ],
+                }
+            ],
+            text={"format": {"type": "text"}},
+            reasoning={},
+            tools=[
+                {
+                    "type": "web_search_preview",
+                    "user_location": {"type": "approximate"},
+                    "search_context_size": "low",
+                }
+            ],
+            temperature=1,
+            max_output_tokens=4096,
+            top_p=1,
+            store=True,
+        )
 
+    except Exception as e:
+        return str(e)
     return response.output[1].content[0].text
 
+@cache_by_input()
 
 def get_fundamentals_openai(ticker, curr_date):
     config = get_config()

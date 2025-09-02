@@ -1,8 +1,9 @@
 import time
 import json
 
-
 def create_risky_debator(llm):
+    from p24_code.agentic_code.function_logger import log_calls
+    @log_calls()  # default: stores return repr, truncates long values to 500 chars
     def risky_node(state) -> dict:
         risk_debate_state = state["risk_debate_state"]
         history = risk_debate_state.get("history", "")

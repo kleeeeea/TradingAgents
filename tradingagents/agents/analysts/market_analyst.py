@@ -1,10 +1,15 @@
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 import time
 import json
 
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.prompts import MessagesPlaceholder
+
+
+
 
 def create_market_analyst(llm, toolkit):
-
+    from p24_code.agentic_code.function_logger import log_calls
+    @log_calls()  # default: stores return repr, truncates long values to 500 chars
     def market_analyst_node(state):
         current_date = state["trade_date"]
         ticker = state["company_of_interest"]
@@ -80,7 +85,7 @@ Volume-Based Indicators:
 
         if len(result.tool_calls) == 0:
             report = result.content
-       
+
         return {
             "messages": [result],
             "market_report": report,

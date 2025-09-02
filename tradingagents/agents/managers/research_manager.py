@@ -3,6 +3,9 @@ import json
 
 
 def create_research_manager(llm, memory):
+    from p24_code.agentic_code.function_logger import log_calls
+    @log_calls()
+    # default: stores return repr, truncates long values to 500 chars
     def research_manager_node(state) -> dict:
         history = state["investment_debate_state"].get("history", "")
         market_research_report = state["market_report"]
